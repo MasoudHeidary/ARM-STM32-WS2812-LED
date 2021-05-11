@@ -23,11 +23,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "WS2812.h"																//<-------------	
-#define ColorRed (WS2812ColorStruct) { 255,0,0 }								//<-------------	
-#define ColorGreen (WS2812ColorStruct) { 0,255,0 }								//<-------------		
-#define ColorBlue (WS2812ColorStruct) { 0,0,255 }								//<-------------	
-#define ColorOff  (WS2812ColorStruct) { 0,0,0 }									//<-------------		
+#include "WS2812.h"								//<-------------	
+#define ColorRed (WS2812ColorStruct) { 255,0,0 }				//<-------------	
+#define ColorGreen (WS2812ColorStruct) { 0,255,0 }				//<-------------		
+#define ColorBlue (WS2812ColorStruct) { 0,0,255 }				//<-------------	
+#define ColorOff  (WS2812ColorStruct) { 0,0,0 }					//<-------------		
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -117,20 +117,20 @@ int main(void) {
 		/* USER CODE END WHILE */
 
 		WS2812SetAll(ColorRed);						//<-------------
-		WS2812Refresh();							//<-------------
-		HAL_Delay(1000);							//<-------------
+		WS2812Refresh();						//<-------------
+		HAL_Delay(1000);						//<-------------
 
 		WS2812SetAll(ColorBlue);					//<-------------
-		WS2812Refresh();							//<-------------
-		HAL_Delay(1000);							//<-------------
+		WS2812Refresh();						//<-------------
+		HAL_Delay(1000);						//<-------------
 
 		WS2812SetAll(ColorGreen);					//<-------------
-		WS2812Refresh();							//<-------------
-		HAL_Delay(1000);							//<-------------
+		WS2812Refresh();						//<-------------
+		HAL_Delay(1000);						//<-------------
 
 		WS2812SetAll(ColorOff);						//<-------------
-		WS2812Refresh();							//<-------------
-		HAL_Delay(1000);							//<-------------
+		WS2812Refresh();						//<-------------
+		HAL_Delay(1000);						//<-------------
 
 		/* USER CODE BEGIN 3 */
 	}
