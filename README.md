@@ -13,6 +13,13 @@ and of course its obvious you should just focus on my WS2812 pin (forget about o
 don't forget to set the clock in WS2812.h
 you obtain it by math formula and then accurate it by try and false
 </p>
+
+<h3>example</h3>
+<p>
+  you can find the necessary coded in WS2812Example.c
+  with search <code>//<-------------</code>
+</p>
+
 <hr>
 <p dir="rtl">
 برای شروع کار با این کتاب خانه تنها نیازه به فایل CubeMX من مراجعه کنید
