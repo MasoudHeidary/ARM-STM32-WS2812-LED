@@ -3,7 +3,7 @@
  * make for ro-box startup
  *
  * @author: Masoud Heidary
- * @address: masoudheidarymh@gmail.com
+ * @address: MasoudHeidaryDeveloper@gmail.com
  */
 
 #pragma once
@@ -19,6 +19,7 @@ DMA_HandleTypeDef hdma_tim2_ch3;
 #define  WS2812_TIM_PRESCALE    0  // F_T3  = 72 MHz (13.88ns)
 #define  WS2812_TIM_PERIODE   	89  // F_PWM = 800 kHz (1.25us)
 
+//caned obtain by try and fault
 #define  WS2812_LOW_TIME        	29  // 29 * 13,9ns = 0.43us
 #define  WS2812_HIGH_TIME        	58  // 58 * 13.9ns = 0.81us
 
