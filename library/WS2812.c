@@ -1,146 +1,235 @@
-#include "stm32f1xx_hal.h"
+/*
+ * WS2812.c
+ *
+ *  Created on: Apr 9, 2022
+ *      Author: Masoud Heidary
+ *      gitHub: https://github.com/MasoudHeidary/
+ *     License: MIT
+ */
 #include "WS2812.h"
 
-uint16_t WS2812_TIM_BUFFUR[WS2812_BUFFURLEN];
-uint8_t DMAReady = 1;
 
-void DMA_Callback(void) {
-	DMAReady = 1;
-}
-
-/*
- * change '0','1' to signal ( pulse 16bit )
- * check buffer of led color "WS2812_LED_BUFFER" bit to bit
- * and make a signal(16bit) for every 1bit
+/**
+ * @breif initialize WS2812 Driver
  *
- * to the end we have a 50us delay
+ * @param None
+ *
+ * @retval None
  */
-void calcBuf(void) {
-	uint32_t n;
-	uint32_t pos;
-	WS2812ColorStruct led;
+void WS2812_init(void) {
+	__WS2812_DMAIsReady = true;
+}
 
-	pos = 0;
-	// set timings for all LEDs
-	for (n = 0; n < WS2812_NUM_LEDS; n++) {
-		led = WS2812_LED_BUFFUR[n];
 
-		//greens bit:0-7
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.green & 0x80) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.green & 0x40) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.green & 0x20) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.green & 0x10) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.green & 0x08) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.green & 0x04) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.green & 0x02) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.green & 0x01) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
+/**
+ * @breif use in DMA callback
+ *
+ * @param None
+ *
+ * @retval None
+ */
+void WS2812_DMACallBack(void) {
+	__WS2812_DMAIsReady = true;
+}
 
-		// red bit:0-7
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.red & 0x80) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.red & 0x40) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.red & 0x20) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.red & 0x10) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.red & 0x08) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.red & 0x04) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.red & 0x02) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.red & 0x01) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
 
-		// blue bit:0-7
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.blue & 0x80) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.blue & 0x40) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.blue & 0x20) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.blue & 0x10) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.blue & 0x08) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.blue & 0x04) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.blue & 0x02) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
-		WS2812_TIM_BUFFUR[pos++] =
-				((led.blue & 0x01) != 0) ? WS2812_HIGH_TIME : WS2812_LOW_TIME;
+/**
+ * @breif generate PWM pulses from color buffer
+ *
+ * @param None
+ *
+ * @retval None
+ */
+void __WS2812_generateBuffer(void) {
+	// buffer position
+	long pos = 0;
+
+	for(int i=0; i< __WS2812_LEDsCount; i++) {
+		WS2812_colorStruct color = __WS2812_ColorsBuf[i];
+
+		// green bit:0-7
+		__WS2812_TimerBuf[pos++] =
+				((color.green & 0x80) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.green & 0x40) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.green & 0x20) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.green & 0x10) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.green & 0x08) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.green & 0x04) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.green & 0x02) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.green & 0x01) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+
+		// red bit:8-15
+		__WS2812_TimerBuf[pos++] =
+				((color.red & 0x80) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.red & 0x40) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.red & 0x20) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.red & 0x10) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.red & 0x08) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.red & 0x04) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.red & 0x02) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.red & 0x01) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+
+
+		// blue 16-23
+		__WS2812_TimerBuf[pos++] =
+				((color.blue & 0x80) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.blue & 0x40) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.blue & 0x20) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.blue & 0x10) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.blue & 0x08) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.blue & 0x04) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.blue & 0x02) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
+		__WS2812_TimerBuf[pos++] =
+				((color.blue & 0x01) != 0) ? __WS2812_OneTime : __WS2812_ZeroTime;
 	}
 
-	//set (2*24)(bit->word(16bit)) for low signal and delay
-	for (n = 0; n < 48; n++) {
-		WS2812_TIM_BUFFUR[pos++] = 0;
+	// delay
+	for(int i=0; i<__WS2812_DelayBufLen; i++)
+		__WS2812_TimerBuf[pos++] = 0;
+}
+
+
+/**
+ * @breif generate PWM signal and set colors in LEDs
+ *
+ * @param timer TIM_HandleTypeDef timer to generate PWM
+ * @param channel uint32_t timer channel to generate PWM
+ *
+ * @retval None
+ */
+void WS2812_refresh(TIM_HandleTypeDef timer, uint32_t channel) {
+	__WS2812_generateBuffer();
+
+	// wait until DMA being ready
+	while (!__WS2812_DMAIsReady);
+
+	__WS2812_DMAIsReady = false;
+	HAL_TIM_PWM_Start_DMA(&timer, channel, (uint32_t *) __WS2812_TimerBuf, __WS2812_TimerBufLen);
+}
+
+
+/**
+ * @breif set color to all LEDs
+ *
+ * @param color WS2812_colorStruct
+ *
+ * @retval None
+ */
+void WS2812_setAll(WS2812_colorStruct color) {
+	for(int i=0; i < __WS2812_LEDsCount; i++) {
+		__WS2812_ColorsBuf[i] = color;
 	}
 }
 
-//start DMA and set colors to leds
-void startDMA(void) {
-	DMAReady = 0;
-	HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, (uint32_t *) WS2812_TIM_BUFFUR,
-	WS2812_BUFFURLEN);
+
+/**
+ * @breif turn off all the LEDs
+ *
+ * @param None
+ *
+ * @retval None
+ */
+void WS2812_clearAll(void) {
+	for(int i=0; i < __WS2812_LEDsCount; i++) {
+		__WS2812_ColorsBuf[i] = (WS2812_colorStruct){0, 0, 0};
+	}
 }
 
-//refresh signal buffer with led buffer
-//and send signals to leds
-void WS2812Refresh(void) {
-	while (!DMAReady)
-		;
-	calcBuf();
-	startDMA();
+
+/**
+ * @breif set color the led_number'th LED
+ *
+ * @param color WS2812_colorStruct to set
+ * @param led_number - start from 0
+ *
+ * @retval None
+ */
+void WS2812_setOne(WS2812_colorStruct color, int led_number) {
+	if(led_number < __WS2812_LEDsCount)
+		__WS2812_ColorsBuf[led_number] = color;
 }
 
-//turn off all leds
-void WS2812Clear() {
-	for (uint32_t i = 0; i < WS2812_NUM_LEDS; i++)
-		WS2812_LED_BUFFUR[i] = (WS2812ColorStruct ) { 0, 0, 0 };
-	WS2812Refresh();
+
+/**
+ * @breif shift colors
+ * D0, D1, D2 -> color, D0, D1
+ *
+ * @param color WS2812_colorStruct insert in shift
+ *
+ * @retval None
+ */
+void WS2812_shiftNext(WS2812_colorStruct color) {
+	for (int i = __WS2812_LEDsCount - 1; i > 0; i--)
+		__WS2812_ColorsBuf[i] = __WS2812_ColorsBuf[i - 1];
+
+	WS2812_setOne(color, 0);
 }
 
-//turn all leds to one color
-void WS2812SetAll(WS2812ColorStruct Color) {
-	for (int i = 0; i < WS2812_NUM_LEDS; i++)
-		WS2812_LED_BUFFUR[i] = Color;
+
+/**
+ * @breif shift colors
+ * D0, D1, D2 -> D1, D2, color
+ *
+ * @param color WS2812_colorStruct insert in shift
+ *
+ * @retval None
+ */
+void WS2812_shiftPrevious(WS2812_colorStruct color) {
+	for (int i = 0; i < __WS2812_LEDsCount - 1; i++)
+		__WS2812_ColorsBuf[i] = __WS2812_ColorsBuf[i+1];
+
+	WS2812_setOne(color, __WS2812_LEDsCount - 1);
+
 }
 
-//set one led to a color : number start 0
-void WS2812SetOne(uint16_t number, WS2812ColorStruct Color) {
-	if (number < WS2812_NUM_LEDS)
-		WS2812_LED_BUFFUR[number] = Color;
+
+/**
+ * @breif rotate colors
+ * 0, 1, 2 -> 2, 0, 1
+ *
+ * @param None
+ *
+ * @retval None
+ */
+void WS2812_rotateNext(void) {
+	WS2812_colorStruct color = __WS2812_ColorsBuf[__WS2812_LEDsCount - 1];
+	WS2812_shiftNext(color);
 }
 
-//shift led color one to right
-void WS2812ShiftRight() {
-	for (int i = WS2812_NUM_LEDS - 1; i > 0; i--)
-		WS2812_LED_BUFFUR[i] = WS2812_LED_BUFFUR[i - 1];
+
+/**
+ * @breif rotate colors
+ * 0, 1, 2 -> 1, 2, 0
+ *
+ * @param None
+ *
+ * @retval None
+ */
+void WS2812_rotatePrevious(void) {
+	WS2812_colorStruct color = __WS2812_ColorsBuf[0];
+	WS2812_shiftPrevious(color);
 }
 
-//shifted led colors one ro left
-void WS2812ShiftLeft() {
-	for (int i = 0; i < WS2812_NUM_LEDS - 1; i++)
-		WS2812_LED_BUFFUR[i] = WS2812_LED_BUFFUR[i + 1];
-}
 
-//shift the colors to right and add color
-void WS2812AddRight(WS2812ColorStruct Color) {
-	WS2812ShiftRight();
-	WS2812_LED_BUFFUR[0] = Color;
-}
 
-//shift the colors to left and add color
-void WS2812AddLeft(WS2812ColorStruct Color) {
-	WS2812ShiftLeft();
-	WS2812_LED_BUFFUR[WS2812_NUM_LEDS - 1] = Color;
-}
+

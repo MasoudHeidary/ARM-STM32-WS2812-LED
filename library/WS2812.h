@@ -1,46 +1,66 @@
 /*
- * control of WS2812 and maybe WS2812 and other with little change
- * make for ro-box startup
+ * WS2812.h
  *
- * @author: Masoud Heidary
- * @address: MasoudHeidaryDeveloper@gmail.com
+ *  Created on: Apr 9, 2022
+ *      Author: Masoud Heidary
+ *      gitHub: https://github.com/MasoudHeidary/
+ *     License: MIT
  */
 
-#pragma once
+#ifndef INC_WS2812_H_
+#define INC_WS2812_H_
 
-#include "stm32f1xx_hal.h"
+/* Includes ------------------------------------------------------------------*/
+#include <stdlib.h>
+#include <stdbool.h>
 
-TIM_HandleTypeDef htim2;
-DMA_HandleTypeDef hdma_tim2_ch3;
+#include "main.h"
 
-#define WS2812_NUM_LEDS		1
-#define WS2812_BUFFURLEN	(WS2812_NUM_LEDS+2)*24
+/* defines -------------------------------------------------------------------*/
+#define __WS2812_LEDsCount	3
+#define __WS2812_DelayBufLen	50
 
-#define  WS2812_TIM_PRESCALE    0  // F_T3  = 72 MHz (13.88ns)
-#define  WS2812_TIM_PERIODE   	89  // F_PWM = 800 kHz (1.25us)
+// (LEDs number + 2) * (color size _ 24bit _ 3byte)
+#define __WS2812_TimerBufLen	__WS2812_LEDsCount * 24 + __WS2812_DelayBufLen
 
-//caned obtain by try and fault
-#define  WS2812_LOW_TIME        	29  // 29 * 13,9ns = 0.43us
-#define  WS2812_HIGH_TIME        	58  // 58 * 13.9ns = 0.81us
+#define __WS2812_ZeroTime 	16	// 0.4us * 48MHz
+#define __WS2812_OneTime	32	// 0.8us * 48MHz
 
-//--------------------------------------------------------------
-// RGB LED Farbdefinition (3 x 8bit)
-//--------------------------------------------------------------
+/* variables -----------------------------------------------------------------*/
+bool __WS2812_DMAIsReady;
+
 typedef struct {
-	uint8_t red;    // 0...255 (als PWM-Wert)
-	uint8_t green;  // 0...255 (als PWM-Wert)
-	uint8_t blue;   // 0...255 (als PWM-Wert)
-} WS2812ColorStruct;
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
+} WS2812_colorStruct;
 
-WS2812ColorStruct WS2812_LED_BUFFUR[WS2812_NUM_LEDS];
+// for setting colors for each LED
+WS2812_colorStruct __WS2812_ColorsBuf [__WS2812_LEDsCount];
 
-void DMA_Callback(void);
+// for timer to generate PWM
+uint16_t __WS2812_TimerBuf [__WS2812_TimerBufLen];
 
-void WS2812Refresh(void);
-void WS2812Clear();
-void WS2812SetAll(WS2812ColorStruct Color);
-void WS2812SetOne(uint16_t number, WS2812ColorStruct Color);
-void WS2812ShiftRight();
-void WS2812ShiftLeft();
-void WS2812AddRight(WS2812ColorStruct Color);
-void WS2812AddLeft(WS2812ColorStruct Color);
+/* public functions ----------------------------------------------------------*/
+// general
+void WS2812_init(void);
+void WS2812_DMACallBack(void);
+
+// update led colors
+void WS2812_refresh(TIM_HandleTypeDef, uint32_t);
+
+// set color
+void WS2812_setAll(WS2812_colorStruct);
+void WS2812_setOne(WS2812_colorStruct, int);
+void WS2812_clearAll(void);
+void WS2812_shiftNext(WS2812_colorStruct);
+void WS2812_shiftPrevious(WS2812_colorStruct color);
+void WS2812_rotateNext(void);
+void WS2812_rotatePrevious(void);
+
+/* private functions ----------------------------------------------------------*/
+void __WS2812_generateBuffer(void);
+
+/* ----------------------------------------------------------------------------*/
+
+#endif /* INC_WS2812_H_ */
