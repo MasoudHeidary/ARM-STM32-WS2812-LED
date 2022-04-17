@@ -102,3 +102,7 @@ for example for 48MHz, round the numbers. but these rounding can cause some glit
 #define __WS2812_ZeroTime 	16	// 0.4us * 40MHz
 #define __WS2812_OneTime	32	// 0.8us * 40MHz
 ```
+
+# Exmaple
+refer to example folder
+(this based on STM32F103C8)
