@@ -1,33 +1,104 @@
-# WS2812
-a simple library for STM32 - non blocking library use timer and interupts
+![header](https://capsule-render.vercel.app/api?type=waving&color=auto&height=400&section=header&text=ARM%20WS2812%20Driver&fontSize=80)
 
-<h3>start</h3>
-<p>
-for start working with this library
-you can look at my CubeMX file and set a Timer, PWM, DMA, and Interpts like my setup
-and of course its obvious you should just focus on my WS2812 pin (forget about other pins)
-</p>
+# overview
 
-<h3>set clock:</h3>
-<p>
-don't forget to set the clock in WS2812.h
-you obtain it by math formula and then accurate it by try and false
-</p>
+Features
 
-<h3>example</h3>
-<p>
-  you can find the necessary coded in WS2812Example.c
-  with search <code>//<-------------</code>
-</p>
+- Non Stop (DMA + Interrupt)
+- Fast
+- Easy Usage
 
-<hr>
-<p dir="rtl">
-برای شروع کار با این کتاب خانه تنها نیازه به فایل CubeMX مراجعه کنید
-و تنظیمات را مانند آن قرار دهید، البته فقط نیازه روی پین مربوط به 
-WS2812
-فوکوس کنید، چون بقیه پین ها اهمیتی ندارند
-برای ست کردن کلاک هم در فایل هدر، با توجه به کلاک تایمر خود اقدام کنید، سپس با سعی و خطا آن را دقیق تر کنید
-</p>
+# Before Use
 
-<hr>
-<img src="WS2812.jpg" style="align:center;" title="WS2812" alt="WS2812">
+## Clock Config
+![clock Config](./static/Clock.PNG)
+
+## Pins
+![Pins](./static/Pins.PNG)
+
+## Timer
+![Timer](./static/Timer.PNG)  
+
+**Note**  
+Counter Period = (1.25us * 40MHz) - 1  
+change 40MHz with your micro controller frequency
+
+![Timer Config](./static/TimerConf.PNG)
+
+## DMA
+![DMA](./static/DMAConf.PNG)
+
+**I Used Timer 1, Channel 1 in this exmaple**  
+in main.c  
+[this function going to call when DMA finishes]
+```c
+    void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
+    {
+    	if (htim->Instance == TIM1) {
+    		HAL_TIM_PWM_Stop_DMA(&htim1, TIM_CHANNEL_1);
+    			WS2812_DMACallBack();
+    	}
+    }
+```
+
+## Code Interupt
+```c
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+ if (huart->Instance == USART1) {
+  M_GPS_bufCplt();
+  M_GPS_bufInit(huart1);
+ }
+}
+```
+
+# How to Use  
+
+initialize at first
+```c
+WS2812_init();
+```
+
+define colors
+```cpp
+WS2812_colorStruct myColor = (WS2812_colorStruct) {10, 10, 10};
+```
+
+now enjoy light up LEDs
+```c
+WS2812_setAll(myColor);
+WS2812_refresh(htim1, TIM_CHANNEL_1);
+```
+
+# Functions
+```c
+// general
+void WS2812_init(void);
+void WS2812_DMACallBack(void);
+
+// update led colors
+void WS2812_refresh(TIM_HandleTypeDef, uint32_t);
+
+// set color
+void WS2812_setAll(WS2812_colorStruct);
+void WS2812_setOne(WS2812_colorStruct, int);
+void WS2812_clearAll(void);
+void WS2812_shiftNext(WS2812_colorStruct);
+void WS2812_shiftPrevious(WS2812_colorStruct color);
+void WS2812_rotateNext(void);
+void WS2812_rotatePrevious(void);
+```
+
+# In Practice
+![Practice](./static/Practice.jpg)
+
+# Change Driver Config
+**WS2812.h**  
+modify these configs, based on your needs  
+
+**Note**  
+for example for 48MHz, round the numbers. but these rounding can cause some glitches (some colors displacements) 
+```c
+#define __WS2812_LEDsCount	3
+#define __WS2812_ZeroTime 	16	// 0.4us * 40MHz
+#define __WS2812_OneTime	32	// 0.8us * 40MHz
+```
