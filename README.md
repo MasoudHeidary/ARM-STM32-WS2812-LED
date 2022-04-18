@@ -41,16 +41,6 @@ in main.c
     }
 ```
 
-## Code Interupt
-```c
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
- if (huart->Instance == USART1) {
-  M_GPS_bufCplt();
-  M_GPS_bufInit(huart1);
- }
-}
-```
-
 # How to Use  
 
 initialize at first
