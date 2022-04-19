@@ -1,3 +1,4 @@
+
 ![header](https://capsule-render.vercel.app/api?type=waving&color=auto&height=400&section=header&text=ARM%20WS2812%20Driver&fontSize=80)
 
 # overview
@@ -8,7 +9,7 @@ Features
 - Fast
 - Easy Usage
 
-# Before Use
+# Before Use (exmaple for STM32F030F4)
 
 ## Clock Config
 ![clock Config](./static/Clock.PNG)
@@ -28,14 +29,14 @@ change 40MHz with your micro controller frequency
 ## DMA
 ![DMA](./static/DMAConf.PNG)
 
-**I Used Timer 1, Channel 1 in this exmaple**  
+**I Used Timer 17, Channel 1 in this exmaple**  
 in main.c  
 [this function going to call when DMA finishes]
 ```c
     void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     {
-    	if (htim->Instance == TIM1) {
-    		HAL_TIM_PWM_Stop_DMA(&htim1, TIM_CHANNEL_1);
+    	if (htim->Instance == TIM17) {
+    		HAL_TIM_PWM_Stop_DMA(&htim17, TIM_CHANNEL_1);
     			WS2812_DMACallBack();
     	}
     }
@@ -56,7 +57,7 @@ WS2812_colorStruct myColor = (WS2812_colorStruct) {10, 10, 10};
 now enjoy light up LEDs
 ```c
 WS2812_setAll(myColor);
-WS2812_refresh(htim1, TIM_CHANNEL_1);
+WS2812_refresh(htim1, TIM_CHANNEL_17);
 ```
 
 # Functions
@@ -95,4 +96,4 @@ for example for 48MHz, round the numbers. but these rounding can cause some glit
 
 # Exmaple
 refer to example folder
-(this based on STM32F103C8)
+(ont for STM32F103C8 and another for STM32F030F4)
