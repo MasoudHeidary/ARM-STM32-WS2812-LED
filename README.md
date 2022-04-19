@@ -57,7 +57,7 @@ WS2812_colorStruct myColor = (WS2812_colorStruct) {10, 10, 10};
 now enjoy light up LEDs
 ```c
 WS2812_setAll(myColor);
-WS2812_refresh(htim1, TIM_CHANNEL_17);
+WS2812_refresh(htim17, TIM_CHANNEL_1);
 ```
 
 # Functions
