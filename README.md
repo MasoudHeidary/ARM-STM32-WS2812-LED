@@ -80,14 +80,17 @@ void WS2812_rotatePrevious(void);
 ```
 
 # In Practice
+
 ![Practice](./static/Practice.jpg)
 
 # Change Driver Config
+
 **WS2812.h**  
 modify these configs, based on your needs  
 
 **Note**  
-for example for 48MHz, round the numbers. but these rounding can cause some glitches (some colors displacements) 
+for example for 48MHz, round the numbers. but these rounding can cause some glitches (some colors displacements)
+
 ```c
 #define __WS2812_LEDsCount	3
 #define __WS2812_ZeroTime 	16	// 0.4us * 40MHz
@@ -95,5 +98,10 @@ for example for 48MHz, round the numbers. but these rounding can cause some glit
 ```
 
 # Exmaple
+
 refer to example folder
 (ont for STM32F103C8 and another for STM32F030F4)
+
+# PCB
+
+![PCB](./static/PCB.PNG)
